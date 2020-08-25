@@ -30,7 +30,6 @@ def webhook():
 
 # processing the request from dialogflow
 def processRequest(req):
-    # dbConn = pymongo.MongoClient("mongodb://localhost:27017/")  # opening a connection to Mongo
     log = Conversations.Log()
     sessionID = req.get('responseId')
     result = req.get("queryResult")
@@ -69,7 +68,6 @@ def processRequest(req):
                         "text": [
                             webhookresponse
                         ]
-
                     }
                 },
                 {
@@ -388,6 +386,6 @@ def prepareEmail(contact_list):
 if __name__ == '__main__':
     port = 6000
     print("Starting app on port %d" % port)
-    app.run(debug=False, port=port)
+    app.run(debug=True, port=port)
 '''if __name__ == "__main__":
     app.run(port=5000, debug=True)''' # running the app on the local machine on port 8000
