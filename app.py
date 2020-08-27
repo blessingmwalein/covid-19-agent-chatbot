@@ -10,7 +10,6 @@ from saveConversation import Conversations
 from DataRequests import MakeApiRequests
 from sendEmail import EMailClient
 from pymongo import MongoClient
-from firebase import firebase
 
 app = Flask(__name__)  # initialising the flask app with the name 'app'
 hotline_no = '*08002000 / +263714734593*'
