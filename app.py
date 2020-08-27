@@ -10,10 +10,17 @@ from saveConversation import Conversations
 from DataRequests import MakeApiRequests
 from sendEmail import EMailClient
 from pymongo import MongoClient
-# from firebase import firebase
+from firebase import firebase
 
 app = Flask(__name__)  # initialising the flask app with the name 'app'
 hotline_no = '*08002000 / +263714734593*'
+
+@app.route('/welcome', methods=['GET'])
+@cross_origin()
+def welcome():
+    return {
+        "message":"welcome to Covid quick agent endpoint"
+    }
 
 # geting and sending response to dialogflow
 @app.route('/webhook', methods=['POST'])
@@ -41,7 +48,7 @@ def processRequest(req):
     cust_email = parameters.get("cust_email")
 
     #just edit here the db varible
-    # db = firebase.FirebaseApplication("https://covid19chatbot-840f8.firebaseio.com/", None)
+    db = configureDataBase()
 
     if intent == 'covid_searchcountry':
         cust_country = parameters.get("geo-country")
@@ -58,8 +65,8 @@ def processRequest(req):
             deaths_data.get('new')) + \
                           "\n" + " Total Test Done : " + str(deaths_data.get('total')) + "\n\n*******END********* \n "
         print(webhookresponse)
-        # log.saveConversations(sessionID, cust_country, webhookresponse, intent, db)
-        # log.saveCases( "country", fulfillmentText, db)
+        log.saveConversations(sessionID, cust_country, webhookresponse, intent, db)
+        log.saveCases( "country", fulfillmentText, db)
         return {
 
             "fulfillmentMessages": [
@@ -83,7 +90,7 @@ def processRequest(req):
         }
     elif intent == "Welcome" or intent == "continue_conversation" or intent == "not_send_email" or intent == "endConversation" or intent == "Fallback" or intent == "covid_faq" or intent == "select_country_option":
         fulfillmentText = result.get("fulfillmentText")
-        # log.saveConversations(sessionID, query_text, fulfillmentText, intent, db)
+        log.saveConversations(sessionID, query_text, fulfillmentText, intent, db)
     elif result.get("action") == "screening":
         parameters = result.get("parameters")
         p1 = parameters.get("contactRisk")
@@ -114,7 +121,7 @@ def processRequest(req):
         elif p1.lower() == 'maybe' and p2.lower() == 'maybe' and 36 < p3 < 37 and (p4.lower() in moderateThreat):
             fulfillmentMessages2= "It is advisable to contact a health specialist for further diagonistics but you are " \
                                 "not showing severe signs of the virus. *Hotline numbers* " + hotline_no
-            # log.saveConversations(sessionID, query_text,fulfillmentMessages2, intent, db )
+            log.saveConversations(sessionID, query_text,fulfillmentMessages2, intent, db )
             return {
                 "fulfillmentMessages": [
                     {
@@ -129,7 +136,7 @@ def processRequest(req):
 
         elif p1.lower() == 'no' and p2.lower() == 'no' and 36 < p3 < 37 and (p4.lower() in noThreat):
             fulfillmentMessages3 = "You are clear just type *precaution* for precautionary measures. "
-            # log.saveConversations(sessionID, query_text,fulfillmentMessages3, intent, db )
+            log.saveConversations(sessionID, query_text,fulfillmentMessages3, intent, db )
             return {
                 "fulfillmentMessages": [
                     {
@@ -145,7 +152,7 @@ def processRequest(req):
         elif p1.lower() == 'yes' and p2.lower() == 'yes' and 36 < p3 < 37 and (p4.lower() in moderateThreat or p4.lower() in noThreat):
             fulfillmentMessages4= "It is advisable to contact a health specialist for further diagonistics but you are not " \
                                 "showing severe signs of the virus. *Hotline numbers* " + hotline_no
-            # log.saveConversations(sessionID, query_text,fulfillmentMessages4, intent, db )
+            log.saveConversations(sessionID, query_text,fulfillmentMessages4, intent, db )
             return {
                 "fulfillmentMessages": [
                     {
@@ -161,7 +168,7 @@ def processRequest(req):
         elif p1.lower() == 'no' and p2.lower() == 'no' and 36 < p3 < 37 and (p4.lower() in extremeThreat):
             fulfillmentMessages5="It is advisable to contact a health specialist for further diagonistics but you are not " \
                                 "showing severe signs of the virus. *Hotline numbers* " + hotline_no
-            # log.saveConversations(sessionID, query_text,fulfillmentMessages5, intent, db )
+            log.saveConversations(sessionID, query_text,fulfillmentMessages5, intent, db )
             return {
                 "fulfillmentMessages": [
                     {
@@ -177,7 +184,7 @@ def processRequest(req):
         elif p1.lower() == 'yes' and 36 < p3 < 37 and (p4.lower() in allSymptoms):
             fulfillmentMessages6 = "You have extremely greater chances of having the virus. Please contact the authorities " \
                                 "for further screening and please exercise self isolation. *Hotline numbers* " + hotline_no
-            # log.saveConversations(sessionID, query_text,fulfillmentMessages6, intent, db )
+            log.saveConversations(sessionID, query_text,fulfillmentMessages6, intent, db )
             return {
                 "fulfillmentMessages": [
                     {
@@ -192,7 +199,7 @@ def processRequest(req):
         elif p2.lower() == 'yes' and 36 < p3 < 37 and (p4.lower() in allSymptoms):
             fulfillmentMessages7= "You have extremely greater chances of having the virus. Please contact the authorities " \
                                 "for further screening and please exercise self isolation. *Hotline numbers* " + hotline_no
-            # log.saveConversations(sessionID, query_text,fulfillmentMessages7, intent, db )
+            log.saveConversations(sessionID, query_text,fulfillmentMessages7, intent, db )
             return {
                 "fulfillmentMessages": [
                     {
@@ -208,7 +215,7 @@ def processRequest(req):
             fulfillmentMessages8="i cannot exactly give you advice based on your answers please visit your nearest hospital for further" \
                                 "screening It is advisable to contact a health specialist for further diagonistics "\
                                 "but you are not showing severe signs of the virus. *Hotline numbers*" + hotline_no
-            # log.saveConversations(sessionID, query_text,fulfillmentMessages8, intent, db )
+            log.saveConversations(sessionID, query_text,fulfillmentMessages8, intent, db )
             return {
                 "fulfillmentMessages": [
                     {
@@ -224,7 +231,7 @@ def processRequest(req):
             }
     elif intent == "send_report_to_email":
         fulfillmentText = result.get("fulfillmentText")
-        # log.saveConversations(sessionID, "Sure send email", fulfillmentText, intent, db)
+        log.saveConversations(sessionID, "Sure send email", fulfillmentText, intent, db)
         # val = log.getcasesForEmail("country", "", db)
         # print("===>",val)
         # prepareEmail([cust_name, cust_contact, cust_email,val])
@@ -241,8 +248,8 @@ def processRequest(req):
                           "\n" + " Last updated : " + str(
             fulfillmentText.get('last_update')) + "\n\n*******END********* \n "
         print(webhookresponse)
-        # log.saveConversations(sessionID, "Cases worldwide", webhookresponse, intent, db)
-        # log.saveCases("world", fulfillmentText, db)
+        log.saveConversations(sessionID, "Cases worldwide", webhookresponse, intent, db)
+        log.saveCases("world", fulfillmentText, db)
         return {
 
             "fulfillmentMessages": [
@@ -316,7 +323,7 @@ def processRequest(req):
 
 
 
-        # log.saveConversations(sessionID, "Indian State Cases", webhookresponse1, intent, db)
+        log.saveConversations(sessionID, "Indian State Cases", webhookresponse1, intent, db)
         return {
 
             "fulfillmentMessages": [
@@ -358,11 +365,10 @@ def processRequest(req):
 
 
 
-# def configureDataBase():
-#     # client = MongoClient("mongodb+srv://username:passwrod@cluster0-replace with you URL.mongodb.net/test?retryWrites=true&w=majority")
-#     # return client.get_database('covid19DB')
-#     client = firebase.FirebaseApplication("https://gadgetszone-279da.firebaseio.com/", None)
-#     return client
+def configureDataBase():
+    client = pymongo.MongoClient(
+        "mongodb+srv://blessing:x.bling99@covid-chatbot.afhxi.mongodb.net/chatbot?retryWrites=true&w=majority")
+    return client.get_database('chatbot')
 
 def makeAPIRequest(query):
     api = MakeApiRequests.Api()
@@ -384,7 +390,7 @@ def prepareEmail(contact_list):
 
 
 if __name__ == '__main__':
-    port = 6000
+    port = 5000
     print("Starting app on port %d" % port)
     app.run(debug=True, port=port)
 '''if __name__ == "__main__":

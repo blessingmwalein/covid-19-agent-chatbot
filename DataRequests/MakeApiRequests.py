@@ -47,3 +47,4 @@ class Api:
         result = js.get('data')
 
         return result
+
